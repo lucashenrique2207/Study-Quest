@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:study_quest/pages/aula_page.dart';
 import 'package:study_quest/pages/user.dart';
 
-class MeuQueridoDrawer extends StatelessWidget {
-  const MeuQueridoDrawer({super.key});
+class Drawer extends StatelessWidget {
+  const Drawer({super.key});
 
   @override
   Widget build(BuildContext context) {
