@@ -157,7 +157,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: bgColor,
-      drawer: _buildDrawer(),
       body: Stack(
         children: [
           _buildOrb(420, const Color(0xFF1565C0), -120, -100),
