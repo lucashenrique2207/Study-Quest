@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:study_quest/Widgets/drawer.dart';
+import 'package:studyquest/Widgets/drawer.dart';
 
 class AulasApp extends StatelessWidget {
   const AulasApp({super.key});
@@ -42,31 +42,34 @@ const List<Materia> materias = [
   Materia(
     nome: 'Matemática',
     totalAulas: 12,
-    progresso: 0.70,
+    progresso: 0.01,
     cor: Color(0xFF4A9EFF),
     icone: Icons.calculate_rounded,
     iconeBg: Color(0xFF3A7FDD),
   ),
+
   Materia(
     nome: 'Português',
     totalAulas: 10,
-    progresso: 0.50,
+    progresso: 0.01,
     cor: Color(0xFFAB6EF5),
     icone: Icons.menu_book_rounded,
     iconeBg: Color(0xFF7C4DB8),
   ),
+
   Materia(
     nome: 'História',
     totalAulas: 8,
-    progresso: 0.30,
+    progresso: 0.01,
     cor: Color(0xFFFF8C42),
     icone: Icons.account_balance_rounded,
     iconeBg: Color(0xFFD4662A),
   ),
+
   Materia(
     nome: 'Geografia',
     totalAulas: 9,
-    progresso: 0.60,
+    progresso: 0.01,
     cor: Color(0xFF4CC97A),
     icone: Icons.public_rounded,
     iconeBg: Color(0xFF2E9E57),
@@ -74,7 +77,7 @@ const List<Materia> materias = [
   Materia(
     nome: 'Ciências',
     totalAulas: 11,
-    progresso: 0.40,
+    progresso: 0.01,
     cor: Color(0xFFFF5E8A),
     icone: Icons.science_rounded,
     iconeBg: Color(0xFFCC3060),
@@ -82,7 +85,7 @@ const List<Materia> materias = [
   Materia(
     nome: 'Inglês',
     totalAulas: 15,
-    progresso: 0.80,
+    progresso: 0.01,
     cor: Color(0xFFFFCC33),
     icone: Icons.chat_bubble_rounded,
     iconeBg: Color(0xFFD4A010),
@@ -115,7 +118,6 @@ class _AulasPageState extends State<AulasPage> {
             _buildHeader(context),
             Expanded(
               child: ListView.builder(
-                drawer: MeuDrawer
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: materias.length,
                 itemBuilder: (context, index) => MateriaCard(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:study_quest/pages/user.dart';
+import 'package:studyquest/pages/user.dart';
 
 void main() {
   runApp(const MainApp());

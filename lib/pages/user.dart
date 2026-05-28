@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:study_quest/Widgets/drawer.dart';
+import 'package:studyquest/Widgets/drawer.dart';
 
 const List<String> weekDays = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
 const List<int> chestReward = [15, 15, 20, 20, 25, 30, 60];
@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: bgColor,
-      drawer: MeuDrawer
+      drawer: MeuDrawer(),
       body: Stack(
         children: [
           _buildOrb(420, const Color(0xFF1565C0), -120, -100),

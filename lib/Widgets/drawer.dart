@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:study_quest/pages/aula_page.dart';
-import 'package:study_quest/pages/user.dart';
+import 'package:studyquest/pages/aula_page.dart';
+import 'package:studyquest/pages/progresso.dart';
+import 'package:studyquest/pages/user.dart';
 
 class MeuDrawer extends StatelessWidget {
-  const Drawer({super.key});
+  const MeuDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,19 +30,43 @@ class MeuDrawer extends StatelessWidget {
           onTap: (){
             Navigator.push(context,
              MaterialPageRoute(
-              builder: (m) => MyApp()
+              builder: (a) => MyApp(),
               )
             );
           },
         ),
 
         ListTile(
-          leading: Icon(Icons.email),
-          title: Text("Home"),
+          leading: Icon(Icons.home),
+          title: Text("Usuario"),
           onTap: (){
             Navigator.push(context,
              MaterialPageRoute(
-              builder: (tes) => AulasApp(),
+              builder: (b) => HomePage(),
+              )
+            );
+          },
+        ),
+
+        ListTile(
+          leading: Icon(Icons.book),
+          title: Text("Aulas"),
+          onTap: (){
+            Navigator.push(context,
+             MaterialPageRoute(
+              builder: (c) => AulasApp(),
+              )
+            );
+          },
+        ),
+
+        ListTile(
+          leading: Icon(Icons.alarm),
+          title: Text("Desafios"),
+          onTap: (){
+            Navigator.push(context,
+             MaterialPageRoute(
+              builder: (d) => QuestsApp(),
               )
             );
           },
