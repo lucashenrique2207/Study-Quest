@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:study_quest/pages/aula_page.dart';
 import 'package:study_quest/pages/user.dart';
 
-class Drawer extends StatelessWidget {
+class MeuDrawer extends StatelessWidget {
   const Drawer({super.key});
 
   @override
@@ -17,15 +17,15 @@ class Drawer extends StatelessWidget {
         ),
 
         ListTile(
-          title: Text("seila"),
-          subtitle: Text("sou humano"),
+          title: Text("Gustavo Dias"),
+          subtitle: Text(""),
         ),
 
         Divider(),
 
         ListTile(
           leading: Icon(Icons.account_box),
-          title: Text("Menu"),
+          title: Text("Usuario"),
           onTap: (){
             Navigator.push(context,
              MaterialPageRoute(
@@ -37,7 +37,7 @@ class Drawer extends StatelessWidget {
 
         ListTile(
           leading: Icon(Icons.email),
-          title: Text("Mensagens"),
+          title: Text("Home"),
           onTap: (){
             Navigator.push(context,
              MaterialPageRoute(
@@ -47,17 +47,7 @@ class Drawer extends StatelessWidget {
           },
         ),
 
-        ListTile(
-          leading: Icon(Icons.email),
-          title: Text("Mensagens"),
-          onTap: (){
-            Navigator.push(context,
-             MaterialPageRoute(
-              builder: (tes) => AulasApp(),
-              )
-            );
-          },
-        ),
+        
 
       ],
       ),

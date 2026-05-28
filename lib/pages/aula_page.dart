@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:study_quest/Widgets/drawer.dart';
 
 class AulasApp extends StatelessWidget {
   const AulasApp({super.key});
@@ -114,6 +115,7 @@ class _AulasPageState extends State<AulasPage> {
             _buildHeader(context),
             Expanded(
               child: ListView.builder(
+                drawer: MeuDrawer
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: materias.length,
                 itemBuilder: (context, index) => MateriaCard(
