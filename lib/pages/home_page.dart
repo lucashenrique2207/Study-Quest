@@ -14,7 +14,7 @@ import 'package:studyquest/Widgets/welcome_banner.dart';
 ///   progresso: 0.0,
 /// )
 /// ```
-class HomePage extends StatelessWidget {
+class HomePageP extends StatelessWidget {
   final int pontos;
   final int diasConsecutivos;
   final double progresso; // 0.0 – 1.0
@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
   final VoidCallback? onAulasTap;
   final VoidCallback? onProgressTap;
 
-  const HomePage({
+  const HomePageP({
     super.key,
     this.pontos = 0,
     this.diasConsecutivos = 0,

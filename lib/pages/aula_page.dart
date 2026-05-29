@@ -42,34 +42,31 @@ const List<Materia> materias = [
   Materia(
     nome: 'Matemática',
     totalAulas: 12,
-    progresso: 0.01,
+    progresso: 0.70,
     cor: Color(0xFF4A9EFF),
     icone: Icons.calculate_rounded,
     iconeBg: Color(0xFF3A7FDD),
   ),
-
   Materia(
     nome: 'Português',
     totalAulas: 10,
-    progresso: 0.01,
+    progresso: 0.50,
     cor: Color(0xFFAB6EF5),
     icone: Icons.menu_book_rounded,
     iconeBg: Color(0xFF7C4DB8),
   ),
-
   Materia(
     nome: 'História',
     totalAulas: 8,
-    progresso: 0.01,
+    progresso: 0.30,
     cor: Color(0xFFFF8C42),
     icone: Icons.account_balance_rounded,
     iconeBg: Color(0xFFD4662A),
   ),
-
   Materia(
     nome: 'Geografia',
     totalAulas: 9,
-    progresso: 0.01,
+    progresso: 0.60,
     cor: Color(0xFF4CC97A),
     icone: Icons.public_rounded,
     iconeBg: Color(0xFF2E9E57),
@@ -77,7 +74,7 @@ const List<Materia> materias = [
   Materia(
     nome: 'Ciências',
     totalAulas: 11,
-    progresso: 0.01,
+    progresso: 0.40,
     cor: Color(0xFFFF5E8A),
     icone: Icons.science_rounded,
     iconeBg: Color(0xFFCC3060),
@@ -85,7 +82,7 @@ const List<Materia> materias = [
   Materia(
     nome: 'Inglês',
     totalAulas: 15,
-    progresso: 0.01,
+    progresso: 0.80,
     cor: Color(0xFFFFCC33),
     icone: Icons.chat_bubble_rounded,
     iconeBg: Color(0xFFD4A010),
@@ -129,7 +126,6 @@ class _AulasPageState extends State<AulasPage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:studyquest/pages/aula_page.dart';
 import 'package:studyquest/pages/progresso.dart';
 import 'package:studyquest/pages/user.dart';
+import 'package:studyquest/pages/home_page.dart';
 
 class MeuDrawer extends StatelessWidget {
   const MeuDrawer({super.key});
@@ -38,11 +39,11 @@ class MeuDrawer extends StatelessWidget {
 
         ListTile(
           leading: Icon(Icons.home),
-          title: Text("Usuario"),
+          title: Text("Home"),
           onTap: (){
             Navigator.push(context,
              MaterialPageRoute(
-              builder: (b) => HomePage(),
+              builder: (b) => HomePageP(),
               )
             );
           },
@@ -79,4 +80,3 @@ class MeuDrawer extends StatelessWidget {
     );
   }
 }
-

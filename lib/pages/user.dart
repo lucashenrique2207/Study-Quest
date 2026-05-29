@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:studyquest/Widgets/drawer.dart';
 
+
 const List<String> weekDays = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
 const List<int> chestReward = [15, 15, 20, 20, 25, 30, 60];
 const int initialTodayIdx = 3;

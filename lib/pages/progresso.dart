@@ -138,7 +138,6 @@ class _StudyQuestHomeState extends State<StudyQuestHome>
                 ),
               ),
             ),
-            _buildBottomNav(),
           ],
         ),
       ),
