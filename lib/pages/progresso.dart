@@ -1,688 +1,1673 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
-void main() {
-  runApp(const QuestsApp());
-}
 
-class QuestsApp extends StatelessWidget {
-  const QuestsApp({super.key});
-
+class QuizHistoriaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Study Quest',
+      title: 'Quiz de História',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: 'Poppins',
-        useMaterial3: true,
+        primarySwatch: Colors.indigo,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const StudyQuestHome(),
+      home: MapaScreen(),
     );
   }
 }
 
-// ─── Data ───────────────────────────────────────────────────────────────────
+/// Modelo de pergunta
+class Pergunta {
+  final String enunciado;
+  final List<String> alternativas;
+  final int indiceCorreto;
 
-class Phase {
-  final int number;
-  final String title;
-  final PhaseStatus status;
-  final int stars; // 0-3
-
-  const Phase({
-    required this.number,
-    required this.title,
-    required this.status,
-    this.stars = 0,
+  Pergunta({
+    required this.enunciado,
+    required this.alternativas,
+    required this.indiceCorreto,
   });
-}
 
-enum PhaseStatus { completed, current, locked }
+  Pergunta embaralharAlternativas() {
+    final List<String> novasAlternativas = List<String>.from(alternativas);
+    final String respostaCorreta = alternativas[indiceCorreto];
 
-final List<Phase> phases = [
-  Phase(number: 1, title: 'Ditadura\nMilitar',      status: PhaseStatus.completed, stars: 3),
-  Phase(number: 2, title: 'Era\nVargas',            status: PhaseStatus.current),
-  Phase(number: 3, title: 'Segunda\nGuerra Mundial',status: PhaseStatus.locked),
-  Phase(number: 4, title: 'Primeira\nGuerra Mundial',status: PhaseStatus.locked),
-  Phase(number: 5, title: 'Brasil\nColônia',        status: PhaseStatus.locked),
-  Phase(number: 6, title: 'Independência\ndo Brasil',status: PhaseStatus.locked),
-  Phase(number: 7, title: 'Revolução\nFrancesa',    status: PhaseStatus.locked),
-  Phase(number: 8, title: 'Roma\nAntiga',           status: PhaseStatus.locked),
-  Phase(number: 9, title: 'Egito\nAntigo',          status: PhaseStatus.locked),
-  Phase(number: 10,title: 'Guerra\nFria',           status: PhaseStatus.locked),
-];
+    novasAlternativas.shuffle();
+    final int novoIndice = novasAlternativas.indexOf(respostaCorreta);
 
-// ─── Layout positions (fraction of container width) ─────────────────────────
-// Each row has 1-3 nodes. Values are (left-offset fraction, row index).
-// Row height = 120 logical px.
-const List<Map<String, double>> phasePositions = [
-  {'col': 0.08},  // 1 – left
-  {'col': 0.55},  // 2 – right
-  {'col': 0.08},  // 3 – left
-  {'col': 0.52},  // 4 – center-right
-  {'col': 0.05},  // 5 – left
-  {'col': 0.38},  // 6 – center
-  {'col': 0.68},  // 7 – right
-  {'col': 0.05},  // 8 – left
-  {'col': 0.40},  // 9 – center
-  {'col': 0.68},  // 10 – right (finish)
-];
-
-// ─── Colors ─────────────────────────────────────────────────────────────────
-const Color kBgTop    = Color(0xFF0A2472);
-const Color kBgBot    = Color(0xFF0D47A1);
-const Color kNodeLocked   = Color(0xFF1565C0);
-const Color kNodeCurrent  = Color(0xFF1976D2);
-const Color kNodeCompleted= Color(0xFF1B5E20);
-const Color kNodeGlow     = Color(0xFF42A5F5);
-const Color kGoldStar     = Color(0xFFFFC107);
-const Color kAccent       = Color(0xFF64B5F6);
-const Color kBottomBar    = Color(0xFFFFFFFF);
-
-// ─── Main Screen ─────────────────────────────────────────────────────────────
-
-class StudyQuestHome extends StatefulWidget {
-  const StudyQuestHome({super.key});
-  @override
-  State<StudyQuestHome> createState() => _StudyQuestHomeState();
-}
-
-class _StudyQuestHomeState extends State<StudyQuestHome>
-    with TickerProviderStateMixin {
-  int _selectedTab = 0;
-  late AnimationController _pulseCtrl;
-  late Animation<double> _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat(reverse: true);
-    _pulse = Tween<double>(begin: 1.0, end: 1.12).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    return Pergunta(
+      enunciado: enunciado,
+      alternativas: novasAlternativas,
+      indiceCorreto: novoIndice,
     );
   }
+}
 
+/// Dados de todas as fases (10 fases x 10 perguntas)
+class BancoPerguntas {
+  static final List<String> temas = [
+    'Primeira Guerra Mundial',
+    'Segunda Guerra Mundial',
+    'Revolução Francesa',
+    'Império Romano',
+    'Descobrimentos e Navegações',
+    'Revolução Industrial',
+    'Guerra Fria',
+    'Antiguidade Egípcia',
+    'Independências das Américas',
+    'Globalização e Mundo Contemporâneo',
+  ];
+
+  static final List<List<Pergunta>> fases = [
+    // FASE 1 – PRIMEIRA GUERRA MUNDIAL
+    [
+      Pergunta(
+        enunciado: 'Em que ano começou a Primeira Guerra Mundial?',
+        alternativas: ['1914', '1912', '1918', '1905'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual evento foi o estopim para o início da Primeira Guerra Mundial?',
+        alternativas: [
+          'Assassinato do Arquiduque Francisco Ferdinando',
+          'Invasão da Polônia',
+          'Bombardeio de Pearl Harbor',
+          'Queda da Bolsa de Nova York'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Como era chamada a aliança formada por Alemanha, Áustria-Hungria e Itália antes da guerra?',
+        alternativas: [
+          'Tríplice Aliança',
+          'Tríplice Entente',
+          'Liga das Nações',
+          'Eixo'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual tecnologia de guerra foi usada em larga escala pela primeira vez na Primeira Guerra Mundial?',
+        alternativas: [
+          'Gás venenoso / guerra química',
+          'Bombas atômicas',
+          'Mísseis balísticos',
+          'Armas a laser'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Em que ano os Estados Unidos entraram na Primeira Guerra?',
+        alternativas: ['1917', '1914', '1915', '1919'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual tratado encerrou oficialmente a Primeira Guerra Mundial?',
+        alternativas: [
+          'Tratado de Versalhes',
+          'Tratado de Tordesilhas',
+          'Tratado de Paris (1783)',
+          'Tratado de Yalta'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Em que cidade foi assinado o Tratado de Versalhes?',
+        alternativas: ['Versalhes', 'Paris', 'Londres', 'Berlim'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual país saiu da guerra após a Revolução Bolchevique de 1917?',
+        alternativas: ['Rússia', 'Itália', 'França', 'Turquia'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Que expressão ficou famosa por acreditarem que a Primeira Guerra seria rápida?',
+        alternativas: [
+          'A guerra que acabaria com todas as guerras',
+          'Guerra Fria',
+          'Blitzkrieg',
+          'Guerra Relâmpago'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Quais eram os países da Tríplice Entente?',
+        alternativas: [
+          'França, Reino Unido e Rússia',
+          'Alemanha, Áustria-Hungria e Itália',
+          'EUA, França e Japão',
+          'Itália, Rússia e Turquia'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 2 – SEGUNDA GUERRA MUNDIAL
+    [
+      Pergunta(
+        enunciado: 'Em que ano começou a Segunda Guerra Mundial?',
+        alternativas: ['1939', '1941', '1918', '1929'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual evento marcou a entrada dos EUA na Segunda Guerra Mundial?',
+        alternativas: [
+          'Ataque a Pearl Harbor',
+          'Invasão da Polônia',
+          'Dia D',
+          'Batalha de Stalingrado'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quem era o líder da Alemanha Nazista durante a Segunda Guerra?',
+        alternativas: [
+          'Adolf Hitler',
+          'Benito Mussolini',
+          'Joseph Stalin',
+          'Franklin D. Roosevelt'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi o Dia D, em 1944?',
+        alternativas: [
+          'O desembarque aliado na Normandia',
+          'O ataque a Pearl Harbor',
+          'A assinatura do Tratado de Versalhes',
+          'O fim da Primeira Guerra'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual foi o nome do plano alemão de invasão à União Soviética?',
+        alternativas: [
+          'Operação Barbarossa',
+          'Operação Overlord',
+          'Plano Marshall',
+          'Operação Husky'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Em quais cidades japonesas foram lançadas as bombas atômicas?',
+        alternativas: [
+          'Hiroshima e Nagasaki',
+          'Tóquio e Osaka',
+          'Kyoto e Hiroshima',
+          'Nagasaki e Yokohama'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual organização internacional foi criada após a Segunda Guerra Mundial?',
+        alternativas: [
+          'ONU (Organização das Nações Unidas)',
+          'Liga das Nações',
+          'OTAN',
+          'União Europeia'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Em que ano terminou a Segunda Guerra Mundial?',
+        alternativas: ['1945', '1940', '1950', '1939'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi o Holocausto?',
+        alternativas: [
+          'O genocídio de judeus e outros grupos pelos nazistas',
+          'A invasão da França pela Alemanha',
+          'A explosão das bombas atômicas',
+          'O julgamento de Nuremberg'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Quem foi Winston Churchill?',
+        alternativas: [
+          'Primeiro-ministro britânico durante a guerra',
+          'Líder soviético',
+          'Presidente dos EUA',
+          'Imperador japonês'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 3 – REVOLUÇÃO FRANCESA
+    [
+      Pergunta(
+        enunciado: 'Em que ano começou a Revolução Francesa?',
+        alternativas: ['1789', '1776', '1804', '1815'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual prisão foi tomada pelos revolucionários em 14 de julho de 1789?',
+        alternativas: ['Bastilha', 'Versalhes', 'Conciergerie', 'Louvre'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quais eram os três estados da sociedade francesa antes da Revolução?',
+        alternativas: [
+          'Clero, Nobreza e Terceiro Estado',
+          'Burguesia, Camponeses e Escravos',
+          'Reis, Nobres e Servos',
+          'Sacerdotes, Guerreiros e Trabalhadores'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Qual foi o lema da Revolução Francesa?',
+        alternativas: [
+          'Liberdade, Igualdade e Fraternidade',
+          'Ordem e Progresso',
+          'Pátria, Trabalho e Família',
+          'Pão, Paz e Terra'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual rei francês foi guilhotinado durante a Revolução Francesa?',
+        alternativas: ['Luís XVI', 'Luís XIV', 'Carlos X', 'Napoleão III'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'O que foi a Declaração dos Direitos do Homem e do Cidadão?',
+        alternativas: [
+          'Documento que garantia direitos universais inspirados no Iluminismo',
+          'Tratado de paz com a Inglaterra',
+          'Constituição do Império Napoleônico',
+          'Abolição da escravidão na França'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quem foi o principal líder do período conhecido como "O Terror"?',
+        alternativas: [
+          'Robespierre',
+          'Napoleão Bonaparte',
+          'Danton',
+          'Marat'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual fase da Revolução Francesa abriu caminho para a ascensão de Napoleão?',
+        alternativas: [
+          'Diretório e Golpe do 18 Brumário',
+          'Monarquia Constitucional',
+          'Assembleia Nacional Constituinte',
+          'Restauração Bourbon'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual foi uma das principais causas populares da Revolução Francesa?',
+        alternativas: [
+          'Crise econômica, fome e desigualdade social',
+          'Vitória sobre a Inglaterra',
+          'Abundância de alimentos',
+          'Expansão colonial'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual documento americano influenciou os ideais da Revolução Francesa?',
+        alternativas: [
+          'Declaração de Independência dos EUA',
+          'Constituição Mexicana',
+          'Carta Magna inglesa',
+          'Tratado de Versalhes'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 4 – IMPÉRIO ROMANO
+    [
+      Pergunta(
+        enunciado: 'Segundo a tradição, em que ano Roma foi fundada?',
+        alternativas: ['753 a.C.', '27 a.C.', '476 d.C.', '509 a.C.'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Quem foi o primeiro imperador romano?',
+        alternativas: [
+          'Augusto (Otávio Augusto)',
+          'Júlio César',
+          'Nero',
+          'Constantino'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que era o Senado Romano?',
+        alternativas: [
+          'Órgão político consultivo composto por aristocratas',
+          'Assembleia de escravos',
+          'Conselho de generais bárbaros',
+          'Tribunal religioso'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual general romano cruzou o rio Rubicão desafiando o Senado?',
+        alternativas: [
+          'Júlio César',
+          'Marco Aurélio',
+          'Cícero',
+          'Bruto'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Como se chamava o longo período de paz e prosperidade no Império Romano?',
+        alternativas: [
+          'Pax Romana',
+          'Belle Époque',
+          'Paz Armada',
+          'Idade de Ouro Grega'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Em que ano caiu o Império Romano do Ocidente, tradicionalmente?',
+        alternativas: ['476 d.C.', '1453', '27 a.C.', '732 d.C.'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Qual era o idioma oficial do Império Romano?',
+        alternativas: ['Latim', 'Grego', 'Hebraico', 'Árabe'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foram as Guerras Púnicas?',
+        alternativas: [
+          'Conflitos entre Roma e Cartago',
+          'Guerras civis entre patrícios e plebeus',
+          'Guerras contra os vikings',
+          'Conflitos com a Pérsia'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Quem foi Espártaco?',
+        alternativas: [
+          'Líder de uma grande revolta de escravos contra Roma',
+          'Imperador que dividiu o império',
+          'Filósofo estoico',
+          'Senador responsável pela Pax Romana'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual imperador romano é associado à legalização do Cristianismo?',
+        alternativas: [
+          'Constantino',
+          'Nero',
+          'Augusto',
+          'Calígula'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 5 – DESCOBRIMENTOS E NAVEGAÇÕES
+    [
+      Pergunta(
+        enunciado: 'Quem chegou ao Brasil em 1500?',
+        alternativas: [
+          'Pedro Álvares Cabral',
+          'Cristóvão Colombo',
+          'Vasco da Gama',
+          'Fernão de Magalhães'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quem foi o primeiro europeu a liderar uma viagem de circum-navegação do globo?',
+        alternativas: [
+          'Fernão de Magalhães (completada por Elcano)',
+          'Pedro Álvares Cabral',
+          'Bartolomeu Dias',
+          'James Cook'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual rota marítima foi descoberta por Vasco da Gama no fim do século XV?',
+        alternativas: [
+          'Caminho marítimo para as Índias contornando a África',
+          'Passagem Noroeste para o Ártico',
+          'Rota pelo Pacífico até a América',
+          'Travessia do Atlântico Norte até a Groenlândia'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Que instrumento de navegação ajudava a medir a posição pelo Sol e pelas estrelas?',
+        alternativas: [
+          'Astrolábio',
+          'Bússola digital',
+          'Radar',
+          'Telescópio de Galileu'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual país europeu liderou as Grandes Navegações no início do século XV?',
+        alternativas: ['Portugal', 'Espanha', 'França', 'Holanda'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quem patrocinou a viagem de Cristóvão Colombo em 1492?',
+        alternativas: [
+          'Reis Católicos da Espanha (Fernando e Isabel)',
+          'Rei de Portugal',
+          'Papa Alexandre VI',
+          'Rei da Inglaterra'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi o Tratado de Tordesilhas (1494)?',
+        alternativas: [
+          'Acordo que dividiu o mundo entre Portugal e Espanha',
+          'Tratado de paz entre França e Inglaterra',
+          'Acordo que aboliu a escravidão',
+          'Pacto de não agressão entre Portugal e Holanda'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Em que ano Cristóvão Colombo chegou à América pelo Atlântico?',
+        alternativas: ['1492', '1500', '1453', '1519'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual foi o papel do Infante Dom Henrique nas navegações portuguesas?',
+        alternativas: [
+          'Incentivou e organizou expedições, criando um centro de estudos náuticos',
+          'Liderou a invasão da Inglaterra',
+          'Foi o primeiro a chegar ao Brasil',
+          'Criou a bússola magnética'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quais especiarias eram muito valorizadas pelos europeus nas rotas comerciais?',
+        alternativas: [
+          'Pimenta, cravo, noz-moscada e canela',
+          'Café e cacau',
+          'Algodão e tabaco',
+          'Milho e batata'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 6 – REVOLUÇÃO INDUSTRIAL
+    [
+      Pergunta(
+        enunciado: 'Em qual país começou a Revolução Industrial?',
+        alternativas: [
+          'Inglaterra (Reino Unido)',
+          'França',
+          'Alemanha',
+          'Estados Unidos'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual invenção foi fundamental para impulsionar a Revolução Industrial?',
+        alternativas: [
+          'Máquina a vapor',
+          'Motor a jato',
+          'Telefone',
+          'Imprensa de Gutenberg'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Quem aperfeiçoou a máquina a vapor no século XVIII?',
+        alternativas: [
+          'James Watt',
+          'Henry Ford',
+          'Thomas Edison',
+          'Nikola Tesla'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi o ludismo?',
+        alternativas: [
+          'Movimento de trabalhadores que destruíam máquinas por medo do desemprego',
+          'Movimento pela jornada de 8 horas',
+          'Partido político liberal',
+          'Sindicato patronal'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Que tipo de sistema de trabalho passou a predominar com a Revolução Industrial?',
+        alternativas: [
+          'Trabalho assalariado em fábricas',
+          'Escravidão rural',
+          'Servidão feudal',
+          'Cooperativas artesanais'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual filósofo criticou o capitalismo industrial na obra "O Capital"?',
+        alternativas: [
+          'Karl Marx',
+          'Adam Smith',
+          'John Locke',
+          'Jean-Jacques Rousseau'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'O que foi a urbanização acelerada causada pela Revolução Industrial?',
+        alternativas: [
+          'Migração em massa do campo para as cidades industriais',
+          'Retorno das pessoas ao campo',
+          'Expansão das aldeias indígenas',
+          'Criação de cidades medievais muradas'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual foi um dos principais impactos ambientais da Revolução Industrial?',
+        alternativas: [
+          'Aumento da poluição do ar e da água',
+          'Redução do efeito estufa',
+          'Fim do desmatamento',
+          'Recuperação total de florestas'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Em que século ocorreu a chamada Segunda Revolução Industrial?',
+        alternativas: ['Século XIX', 'Século XVI', 'Século XXI', 'Século XIII'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Que novo meio de transporte terrestre se desenvolveu com força nesse período?',
+        alternativas: [
+          'Ferrovia / trem a vapor',
+          'Carro voador',
+          'Bicicleta elétrica',
+          'Dirigível supersônico'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 7 – GUERRA FRIA
+    [
+      Pergunta(
+        enunciado:
+            'Entre quais duas superpotências ocorreu a Guerra Fria após a Segunda Guerra Mundial?',
+        alternativas: [
+          'Estados Unidos e União Soviética',
+          'Alemanha e Japão',
+          'França e Inglaterra',
+          'China e Índia'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi a Corrida Espacial?',
+        alternativas: [
+          'Disputa tecnológica entre EUA e URSS para dominar o espaço',
+          'Competição esportiva entre países europeus',
+          'Prova olímpica de maratona',
+          'Conflito armado na Lua'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual foi o primeiro satélite artificial lançado ao espaço, em 1957?',
+        alternativas: [
+          'Sputnik',
+          'Apollo 11',
+          'Voyager 1',
+          'Hubble'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que representava o Muro de Berlim?',
+        alternativas: [
+          'A divisão entre o bloco capitalista e o bloco socialista',
+          'A fronteira entre França e Espanha',
+          'A barreira contra invasões vikings',
+          'O limite do Império Romano'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Em que ano o Muro de Berlim caiu?',
+        alternativas: ['1989', '1945', '1961', '2001'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi a Crise dos Mísseis de Cuba, em 1962?',
+        alternativas: [
+          'Confronto diplomático sobre mísseis soviéticos instalados em Cuba',
+          'Guerra civil entre Cuba e México',
+          'Invasão de Cuba pelo Japão',
+          'Acidente nuclear em Cuba'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quais foram os nomes das políticas de reforma implementadas por Mikhail Gorbachev na URSS?',
+        alternativas: [
+          'Glasnost e Perestroika',
+          'New Deal',
+          'Plano Marshall',
+          'Guerra Relâmpago'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que é a OTAN?',
+        alternativas: [
+          'Aliança militar de países ocidentais liderada pelos EUA',
+          'Organização de comércio africano',
+          'União política sul-americana',
+          'Agência espacial europeia'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Em que ano a União Soviética foi oficialmente dissolvida, encerrando a Guerra Fria?',
+        alternativas: ['1991', '1980', '2000', '1975'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi o Plano Marshall?',
+        alternativas: [
+          'Programa americano de reconstrução econômica da Europa',
+          'Plano de invasão do Japão',
+          'Projeto de bomba atômica alemã',
+          'Acordo de paz entre EUA e URSS'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 8 – ANTIGUIDADE EGÍPCIA
+    [
+      Pergunta(
+        enunciado:
+            'Qual rio foi fundamental para o desenvolvimento da civilização egípcia?',
+        alternativas: ['Rio Nilo', 'Rio Tigre', 'Rio Eufrates', 'Rio Jordão'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Como eram chamados os governantes do Antigo Egito?',
+        alternativas: ['Faraós', 'Czares', 'Césares', 'Xás'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Para que serviam as grandes pirâmides egípcias?',
+        alternativas: [
+          'Tumbas para faraós e locais de rituais funerários',
+          'Templos gregos para deuses',
+          'Fortalezas militares',
+          'Mercados de escravos'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual sistema de escrita foi desenvolvido pelos antigos egípcios?',
+        alternativas: [
+          'Hieróglifos',
+          'Cuneiforme',
+          'Alfabeto cirílico',
+          'Kanji'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi a Pedra de Roseta?',
+        alternativas: [
+          'Artefato que permitiu decifrar os hieróglifos',
+          'Primeira pirâmide construída',
+          'Cidade egípcia submersa',
+          'Livro sagrado dos egípcios'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual rainha egípcia se aliou a Júlio César e Marco Antônio?',
+        alternativas: ['Cleópatra', 'Nefertiti', 'Hatshepsut', 'Isis'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'O que os egípcios acreditavam sobre a vida após a morte?',
+        alternativas: [
+          'Na imortalidade da alma e no julgamento de Osíris',
+          'Que nada existia depois da morte',
+          'Na reencarnação em animais apenas',
+          'Que apenas os escravos tinham vida eterna'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que era o processo de mumificação?',
+        alternativas: [
+          'Técnica de preservar corpos para a vida após a morte',
+          'Método de construir pirâmides',
+          'Forma de escrever em pedra',
+          'Nome de festivais religiosos'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Quem foi Ramsés II?',
+        alternativas: [
+          'Um dos mais importantes faraós, conhecido por batalhas e construções',
+          'Um deus egípcio do sol',
+          'Sacerdote que proibiu pirâmides',
+          'Rei da Mesopotâmia'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quando o Egito Antigo foi incorporado ao Império Romano?',
+        alternativas: ['30 a.C.', '476 d.C.', '753 a.C.', '1453 d.C.'],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 9 – INDEPENDÊNCIAS DAS AMÉRICAS
+    [
+      Pergunta(
+        enunciado: 'Em que ano o Brasil declarou sua independência?',
+        alternativas: ['1822', '1500', '1888', '1808'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Quem proclamou a independência do Brasil?',
+        alternativas: [
+          'Dom Pedro I',
+          'Dom João VI',
+          'Tiradentes',
+          'José Bonifácio'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Em que data é comemorada a Independência do Brasil?',
+        alternativas: [
+          '7 de setembro',
+          '21 de abril',
+          '15 de novembro',
+          '1º de janeiro'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual foi o primeiro país das Américas a declarar independência?',
+        alternativas: [
+          'Estados Unidos',
+          'Brasil',
+          'México',
+          'Argentina'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quem liderou a independência de vários países da América do Sul, como Venezuela e Colômbia?',
+        alternativas: [
+          'Simón Bolívar',
+          'José de San Martín',
+          'Dom Pedro II',
+          'Pancho Villa'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi o "Grito do Ipiranga"?',
+        alternativas: [
+          'Momento em que Dom Pedro I declarou a independência do Brasil às margens do rio Ipiranga',
+          'Primeiro discurso de Dom Pedro II',
+          'Ataque português a São Paulo',
+          'Revolta de escravos no interior de São Paulo'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Qual país europeu colonizou o Brasil?',
+        alternativas: ['Portugal', 'Espanha', 'França', 'Inglaterra'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Quem foi José de San Martín na história das independências?',
+        alternativas: [
+          'Líder da independência da Argentina, Chile e Peru',
+          'Imperador do México',
+          'Presidente dos EUA',
+          'Rei de Portugal'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Em que ano o Haiti se tornou independente, tornando-se a primeira república negra do mundo?',
+        alternativas: ['1804', '1776', '1822', '1889'],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual foi um impacto da vinda da Família Real portuguesa ao Brasil para a independência?',
+        alternativas: [
+          'Elevou o Brasil a Reino Unido, criando condições para a independência',
+          'Enfraqueceu totalmente a economia brasileira',
+          'Acabou com o comércio no Brasil',
+          'Impediu o surgimento de qualquer movimento separatista'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+
+    // FASE 10 – GLOBALIZAÇÃO E MUNDO CONTEMPORÂNEO
+    [
+      Pergunta(
+        enunciado: 'O que é globalização?',
+        alternativas: [
+          'Processo de integração econômica, cultural e política entre países',
+          'Isolamento total das nações',
+          'Domínio de um único império mundial',
+          'Retorno ao feudalismo'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual evento marcou de forma trágica o início do século XXI?',
+        alternativas: [
+          'Ataques de 11 de setembro de 2001 nos EUA',
+          'Queda do Muro de Berlim',
+          'Crise de 1929',
+          'Primeira Guerra Mundial'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi a Primavera Árabe?',
+        alternativas: [
+          'Série de revoltas populares em países árabes a partir de 2010',
+          'Conferência ambiental da ONU',
+          'Programa de reformas na Europa',
+          'Acordo de paz no Oriente Médio em 1948'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual organização internacional é responsável por regular o comércio entre os países?',
+        alternativas: [
+          'OMC (Organização Mundial do Comércio)',
+          'OTAN',
+          'ONU',
+          'OPEP'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que é a União Europeia (UE)?',
+        alternativas: [
+          'Bloco político e econômico de países europeus',
+          'Um único país europeu',
+          'Aliança militar africana',
+          'Organização esportiva'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'Qual foi o impacto da internet na globalização?',
+        alternativas: [
+          'Acelerou a comunicação, o comércio e a troca de informações em escala global',
+          'Eliminou totalmente as diferenças culturais',
+          'Acabou com o comércio internacional',
+          'Impediu a circulação de ideias'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que foi a crise financeira global de 2008?',
+        alternativas: [
+          'Crise originada no mercado imobiliário dos EUA que afetou economias do mundo todo',
+          'Colapso da bolsa em 1929',
+          'Quebra do padrão-ouro no século XIX',
+          'Falência de todos os bancos chineses'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado: 'O que são os BRICS?',
+        alternativas: [
+          'Grupo de países emergentes: Brasil, Rússia, Índia, China e África do Sul',
+          'União de países europeus',
+          'Aliança militar asiática',
+          'Organização de países árabes'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'Qual é considerado um dos principais desafios ambientais do mundo contemporâneo?',
+        alternativas: [
+          'Aquecimento global e mudanças climáticas',
+          'Extinção completa dos vulcões',
+          'Aumento das geleiras',
+          'Fim da poluição'
+        ],
+        indiceCorreto: 0,
+      ),
+      Pergunta(
+        enunciado:
+            'O que foi a pandemia de COVID-19 que começou em 2019?',
+        alternativas: [
+          'Pandemia causada pelo vírus SARS-CoV-2, com grande impacto social e econômico',
+          'Gripe espanhola do início do século XX',
+          'Surto de peste bubônica medieval',
+          'Doença localizada apenas em um país'
+        ],
+        indiceCorreto: 0,
+      ),
+    ],
+  ];
+}
+
+/// Status de cada fase
+enum StatusFase { bloqueada, disponivel, concluida }
+
+/// Tela do mapa de fases
+class MapaScreen extends StatefulWidget {
   @override
-  void dispose() {
-    _pulseCtrl.dispose();
-    super.dispose();
+  State<MapaScreen> createState() => _MapaScreenState();
+}
+
+class _MapaScreenState extends State<MapaScreen> {
+  // Fase 0 desbloqueada inicialmente
+  List<StatusFase> statusFases = List.generate(
+    10,
+    (index) => index == 0 ? StatusFase.disponivel : StatusFase.bloqueada,
+  );
+
+  void _atualizarStatusFase(int faseIndex, bool passou) {
+    setState(() {
+      if (passou) {
+        statusFases[faseIndex] = StatusFase.concluida;
+        if (faseIndex + 1 < statusFases.length &&
+            statusFases[faseIndex + 1] == StatusFase.bloqueada) {
+          statusFases[faseIndex + 1] = StatusFase.disponivel;
+        }
+      }
+    });
+  }
+
+  Color _corPorStatus(StatusFase status) {
+    switch (status) {
+      case StatusFase.bloqueada:
+        return Colors.grey;
+      case StatusFase.disponivel:
+        return Colors.indigoAccent;
+      case StatusFase.concluida:
+        return Colors.green;
+    }
+  }
+
+  IconData _iconePorStatus(StatusFase status) {
+    switch (status) {
+      case StatusFase.bloqueada:
+        return Icons.lock;
+      case StatusFase.disponivel:
+        return Icons.play_arrow;
+      case StatusFase.concluida:
+        return Icons.check;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final largura = MediaQuery.of(context).size.width;
+    final altura = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      backgroundColor: kBgTop,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [kBgTop, Color(0xFF1565C0), kBgBot],
-                    stops: [0.0, 0.5, 1.0],
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    _buildStatsBar(),
-                    Expanded(child: _buildMapArea()),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+      appBar: AppBar(
+        title: const Text('Mapa de Fases - História'),
+        centerTitle: true,
       ),
-    );
-  }
-
-  // ── Header ────────────────────────────────────────────────────────────────
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 16, 0),
-      child: Row(
-        children: [
-          const Text(
-            'Study Quest',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: kNodeGlow.withOpacity(0.5),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: _BearMascot(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Stats Bar ─────────────────────────────────────────────────────────────
-  Widget _buildStatsBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.10),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.18)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _statItem('⭐', '1500', 'pontos'),
-            _divider(),
-            _statItem('🔥', '10 dias', 'sequência'),
-            _divider(),
-            _statItem('🕐', '4h', 'tempo'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _statItem(String icon, String value, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 6),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.white.withOpacity(0.65),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.indigo, Colors.black87],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _divider() => Container(
-        width: 1,
-        height: 36,
-        color: Colors.white.withOpacity(0.2),
-      );
-
-  // ── Map Area ──────────────────────────────────────────────────────────────
-  Widget _buildMapArea() {
-    return LayoutBuilder(
-      builder: (ctx, constraints) {
-        final w = constraints.maxWidth;
-        const double rowH = 115.0;
-        const double nodeR = 36.0;
-        const double topPad = 24.0;
-
-        // Compute absolute positions for each phase node
-        final List<Offset> positions = List.generate(phases.length, (i) {
-          final col = phasePositions[i]['col']!;
-          final row = i.toDouble();
-          return Offset(col * w + nodeR, topPad + row * rowH + nodeR);
-        });
-
-        final double totalH = topPad + phases.length * rowH + nodeR + 48;
-
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 16),
+        child: Center(
           child: SizedBox(
-            width: w,
-            height: math.max(totalH, constraints.maxHeight),
+            width: largura * 0.9,
+            height: altura * 0.85,
             child: Stack(
               children: [
-                // Dashed path
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _DashedPathPainter(positions: positions),
-                  ),
+                // Linhas conectando as fases
+                CustomPaint(
+                  size: Size.infinite,
+                  painter: _ConexoesFasesPainter(),
                 ),
-                // Phase nodes
-                ...List.generate(phases.length, (i) {
-                  final phase = phases[i];
-                  final pos = positions[i];
-                  final isCurrent = phase.status == PhaseStatus.current;
-                  final isLast = i == phases.length - 1;
-
-                  Widget node = _PhaseNode(
-                    phase: phase,
-                    radius: nodeR,
-                    pulse: isCurrent ? _pulse : null,
-                  );
-
-                  if (isLast) {
-                    node = Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        node,
-                        Positioned(
-                          right: -10,
-                          bottom: -6,
-                          child: _FlagIcon(),
-                        ),
-                      ],
-                    );
-                  }
+                // Fases em zigue-zague
+                ...List.generate(10, (index) {
+                  final linha = index; // 0 a 9
+                  final y = (linha + 1) * (altura * 0.07);
+                  final bool ladoEsquerdo = linha % 2 == 0;
+                  final double x = ladoEsquerdo
+                      ? largura * 0.15
+                      : largura * 0.6; // zigue-zague
 
                   return Positioned(
-                    left: pos.dx - nodeR,
-                    top: pos.dy - nodeR,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Stars above completed
-                        if (phase.stars > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 3),
-                            child: _StarsRow(stars: phase.stars),
-                          )
-                        else
-                          const SizedBox(height: 16),
-                        node,
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          width: nodeR * 2 + 20,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              phase.title,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w600,
-                                color: phase.status == PhaseStatus.locked
-                                    ? Colors.white.withOpacity(0.5)
-                                    : Colors.white,
-                                height: 1.3,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    left: x,
+                    top: y,
+                    child: _buildFaseNode(index),
                   );
                 }),
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // ── Bottom Nav ────────────────────────────────────────────────────────────
-  Widget _buildBottomNav() {
-    const items = [
-      _NavItem(icon: Icons.home_rounded, label: 'Home'),
-      _NavItem(icon: Icons.star_rounded, label: 'Desafios'),
-      _NavItem(icon: Icons.bar_chart_rounded, label: 'Progresso'),
-      _NavItem(icon: Icons.emoji_events_rounded, label: 'Conquistas'),
-      _NavItem(icon: Icons.person_rounded, label: 'Perfil'),
-    ];
+  Widget _buildFaseNode(int index) {
+    final status = statusFases[index];
+    final tema = BancoPerguntas.temas[index];
 
-    return Container(
-      height: 72,
-      decoration: const BoxDecoration(
-        color: kBottomBar,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [BoxShadow(color: Color(0x22000000), blurRadius: 16)],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (i) {
-          final selected = i == _selectedTab;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedTab = i),
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 64,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    items[i].icon,
-                    size: 26,
-                    color: selected
-                        ? const Color(0xFF1565C0)
-                        : const Color(0xFFBBBBBB),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    items[i].label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                      color: selected
-                          ? const Color(0xFF1565C0)
-                          : const Color(0xFFBBBBBB),
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: status == StatusFase.bloqueada
+              ? null
+              : () async {
+                  final resultado = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => QuizScreen(
+                        indiceFase: index,
+                        tema: tema,
+                        perguntas: BancoPerguntas.fases[index],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
+                  );
 
-// ─── Phase Node Widget ────────────────────────────────────────────────────────
-
-class _PhaseNode extends StatelessWidget {
-  final Phase phase;
-  final double radius;
-  final Animation<double>? pulse;
-
-  const _PhaseNode({
-    required this.phase,
-    required this.radius,
-    this.pulse,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Widget node = _buildCircle();
-
-    if (pulse != null) {
-      node = ScaleTransition(scale: pulse!, child: node);
-    }
-
-    return node;
-  }
-
-  Widget _buildCircle() {
-    final locked = phase.status == PhaseStatus.locked;
-    final completed = phase.status == PhaseStatus.completed;
-    final current = phase.status == PhaseStatus.current;
-
-    Color bgColor;
-    Color borderColor;
-    Color textColor;
-    List<BoxShadow> shadows = [];
-
-    if (completed) {
-      bgColor = const Color(0xFF2E7D32);
-      borderColor = const Color(0xFF66BB6A);
-      textColor = Colors.white;
-      shadows = [
-        BoxShadow(color: const Color(0xFF66BB6A).withOpacity(0.6), blurRadius: 14, spreadRadius: 1),
-      ];
-    } else if (current) {
-      bgColor = const Color(0xFF1565C0);
-      borderColor = const Color(0xFF90CAF9);
-      textColor = Colors.white;
-      shadows = [
-        BoxShadow(color: const Color(0xFF42A5F5).withOpacity(0.7), blurRadius: 18, spreadRadius: 3),
-        BoxShadow(color: const Color(0xFF90CAF9).withOpacity(0.4), blurRadius: 32, spreadRadius: 6),
-      ];
-    } else {
-      bgColor = kNodeLocked;
-      borderColor = const Color(0xFF42A5F5).withOpacity(0.6);
-      textColor = Colors.white.withOpacity(0.55);
-    }
-
-    return Container(
-      width: radius * 2,
-      height: radius * 2,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: bgColor,
-        border: Border.all(color: borderColor, width: locked ? 2 : 3),
-        boxShadow: shadows,
-      ),
-      child: Center(
-        child: locked
-            ? Icon(Icons.lock_rounded,
-                color: Colors.white.withOpacity(0.4), size: radius * 0.8)
-            : Text(
-                '${phase.number}',
-                style: TextStyle(
-                  fontSize: radius * 0.72,
-                  fontWeight: FontWeight.w800,
-                  color: textColor,
+                  if (resultado != null) {
+                    _atualizarStatusFase(index, resultado);
+                  }
+                },
+          child: Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _corPorStatus(status),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
-              ),
-      ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Text(
+                  '${index + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Icon(
+                    _iconePorStatus(status),
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: 120,
+          child: Text(
+            tema,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ─── Stars Row ────────────────────────────────────────────────────────────────
-
-class _StarsRow extends StatelessWidget {
-  final int stars;
-  const _StarsRow({required this.stars});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (i) {
-        final filled = i < stars;
-        return Icon(
-          filled ? Icons.star_rounded : Icons.star_outline_rounded,
-          color: filled ? kGoldStar : Colors.white.withOpacity(0.3),
-          size: 18,
-        );
-      }),
-    );
-  }
-}
-
-// ─── Flag Icon ────────────────────────────────────────────────────────────────
-
-class _FlagIcon extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1565C0),
-        shape: BoxShape.circle,
-        border: Border.all(color: kNodeGlow, width: 2),
-      ),
-      child: const Icon(Icons.flag_rounded, color: Colors.white, size: 18),
-    );
-  }
-}
-
-// ─── Bear Mascot (drawn with Flutter) ────────────────────────────────────────
-
-class _BearMascot extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(painter: _BearPainter());
-  }
-}
-
-class _BearPainter extends CustomPainter {
+/// Desenha as linhas de conexão entre as fases em zigue-zague
+class _ConexoesFasesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final paint = Paint()..isAntiAlias = true;
+    final paint = Paint()
+      ..color = Colors.white38
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
 
-    // Body
-    paint.color = const Color(0xFFE07B39);
-    canvas.drawOval(Rect.fromLTWH(w * 0.15, h * 0.35, w * 0.70, h * 0.60), paint);
+    for (int i = 0; i < 9; i++) {
+      final linha = i;
+      final proxLinha = i + 1;
+      final bool ladoEsquerdo = linha % 2 == 0;
+      final bool proxLadoEsquerdo = proxLinha % 2 == 0;
 
-    // Head
-    canvas.drawCircle(Offset(w * 0.50, h * 0.38), w * 0.36, paint);
+      final double y = (linha + 1) * (size.height * 0.07);
+      final double y2 = (proxLinha + 1) * (size.height * 0.07);
 
-    // Ears
-    canvas.drawCircle(Offset(w * 0.20, h * 0.13), w * 0.14, paint);
-    canvas.drawCircle(Offset(w * 0.80, h * 0.13), w * 0.14, paint);
+      final double x = ladoEsquerdo ? size.width * 0.15 : size.width * 0.6;
+      final double x2 =
+          proxLadoEsquerdo ? size.width * 0.15 : size.width * 0.6;
 
-    // Inner ears
-    paint.color = const Color(0xFFD2691E);
-    canvas.drawCircle(Offset(w * 0.20, h * 0.13), w * 0.08, paint);
-    canvas.drawCircle(Offset(w * 0.80, h * 0.13), w * 0.08, paint);
-
-    // Muzzle
-    paint.color = const Color(0xFFF5CBA7);
-    canvas.drawOval(Rect.fromLTWH(w * 0.32, h * 0.44, w * 0.36, h * 0.22), paint);
-
-    // Nose
-    paint.color = const Color(0xFF3E2723);
-    canvas.drawOval(Rect.fromLTWH(w * 0.42, h * 0.44, w * 0.16, h * 0.09), paint);
-
-    // Eyes (white)
-    paint.color = Colors.white;
-    canvas.drawCircle(Offset(w * 0.36, h * 0.33), w * 0.10, paint);
-    canvas.drawCircle(Offset(w * 0.64, h * 0.33), w * 0.10, paint);
-
-    // Eyes (pupil)
-    paint.color = const Color(0xFF1A1A1A);
-    canvas.drawCircle(Offset(w * 0.37, h * 0.34), w * 0.06, paint);
-    canvas.drawCircle(Offset(w * 0.65, h * 0.34), w * 0.06, paint);
-
-    // Eye shine
-    paint.color = Colors.white;
-    canvas.drawCircle(Offset(w * 0.39, h * 0.32), w * 0.025, paint);
-    canvas.drawCircle(Offset(w * 0.67, h * 0.32), w * 0.025, paint);
-
-    // Glasses
-    paint.color = const Color(0xFF1565C0);
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = w * 0.04;
-    canvas.drawCircle(Offset(w * 0.36, h * 0.33), w * 0.12, paint);
-    canvas.drawCircle(Offset(w * 0.64, h * 0.33), w * 0.12, paint);
-    canvas.drawLine(Offset(w * 0.48, h * 0.33), Offset(w * 0.52, h * 0.33), paint);
-    canvas.drawLine(Offset(w * 0.10, h * 0.31), Offset(w * 0.24, h * 0.33), paint);
-    canvas.drawLine(Offset(w * 0.76, h * 0.33), Offset(w * 0.90, h * 0.31), paint);
-    paint.style = PaintingStyle.fill;
-
-    // Graduation cap
-    paint.color = const Color(0xFF1565C0);
-    final capPath = Path()
-      ..moveTo(w * 0.50, h * 0.00)
-      ..lineTo(w * 0.10, h * 0.14)
-      ..lineTo(w * 0.50, h * 0.20)
-      ..lineTo(w * 0.90, h * 0.14)
-      ..close();
-    canvas.drawPath(capPath, paint);
-
-    final boardPath = Path()
-      ..moveTo(w * 0.28, h * 0.08)
-      ..lineTo(w * 0.72, h * 0.08)
-      ..lineTo(w * 0.72, h * 0.04)
-      ..lineTo(w * 0.28, h * 0.04)
-      ..close();
-    canvas.drawPath(boardPath, paint);
-
-    // Tassel
-    paint.color = kGoldStar;
-    paint.strokeWidth = w * 0.03;
-    paint.style = PaintingStyle.stroke;
-    canvas.drawLine(Offset(w * 0.78, h * 0.12), Offset(w * 0.85, h * 0.24), paint);
-    paint.style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(w * 0.86, h * 0.26), w * 0.04, paint);
+      canvas.drawLine(Offset(x + 32, y + 32), Offset(x2 + 32, y2 + 32), paint);
+    }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ─── Dashed Path Painter ─────────────────────────────────────────────────────
+/// Tela do quiz de uma fase específica
+class QuizScreen extends StatefulWidget {
+  final int indiceFase;
+  final String tema;
+  final List<Pergunta> perguntas;
 
-class _DashedPathPainter extends CustomPainter {
-  final List<Offset> positions;
-  const _DashedPathPainter({required this.positions});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const nodeR = 36.0;
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.55)
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < positions.length - 1; i++) {
-      _drawDashedLine(canvas, paint, positions[i], positions[i + 1], nodeR);
-    }
-  }
-
-  void _drawDashedLine(
-      Canvas canvas, Paint paint, Offset from, Offset to, double margin) {
-    final dir = (to - from);
-    final dist = dir.distance;
-    final unit = dir / dist;
-
-    final start = from + unit * (margin + 4);
-    final end = to - unit * (margin + 4);
-
-    const dashLen = 10.0;
-    const gapLen = 7.0;
-    double traveled = 0;
-    final total = (end - start).distance;
-
-    while (traveled < total) {
-      final a = start + unit * traveled;
-      final b = start + unit * math.min(traveled + dashLen, total);
-      canvas.drawLine(a, b, paint);
-      traveled += dashLen + gapLen;
-    }
-  }
+  const QuizScreen({
+    Key? key,
+    required this.indiceFase,
+    required this.tema,
+    required this.perguntas,
+  }) : super(key: key);
 
   @override
-  bool shouldRepaint(covariant _DashedPathPainter old) =>
-      old.positions != positions;
+  State<QuizScreen> createState() => _QuizScreenState();
 }
 
-// ─── Nav Item Model ───────────────────────────────────────────────────────────
+class _QuizScreenState extends State<QuizScreen>
+    with SingleTickerProviderStateMixin {
+  late List<Pergunta> _perguntasEmbaralhadas;
+  int _indiceAtual = 0;
+  int _acertos = 0;
+  int? _indiceSelecionado;
+  bool _respondeu = false;
+  late AnimationController _animController;
+  late Animation<double> _animScale;
 
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
+  @override
+  void initState() {
+    super.initState();
+    _perguntasEmbaralhadas = widget.perguntas
+        .map((p) => p.embaralharAlternativas())
+        .toList(growable: false);
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 160),
+      lowerBound: 0.95,
+      upperBound: 1.0,
+    );
+    _animScale = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _selecionarResposta(int indice) async {
+    if (_respondeu) return;
+
+    setState(() {
+      _indiceSelecionado = indice;
+      _respondeu = true;
+      if (indice ==
+          _perguntasEmbaralhadas[_indiceAtual].indiceCorreto) {
+        _acertos++;
+      }
+    });
+
+    // Pequena animação (efeito de clique)
+    _animController.forward(from: 0.95);
+  }
+
+  void _proximaPergunta() {
+    if (_indiceAtual < _perguntasEmbaralhadas.length - 1) {
+      setState(() {
+        _indiceAtual++;
+        _indiceSelecionado = null;
+        _respondeu = false;
+      });
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultadoScreen(
+            indiceFase: widget.indiceFase,
+            tema: widget.tema,
+            acertos: _acertos,
+            total: _perguntasEmbaralhadas.length,
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pergunta = _perguntasEmbaralhadas[_indiceAtual];
+    final progresso =
+        (_indiceAtual + 1) / _perguntasEmbaralhadas.length.toDouble();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Fase ${widget.indiceFase + 1} - ${widget.tema}'),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.indigo, Colors.black87],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Barra de progresso
+            LinearProgressIndicator(
+              value: progresso,
+              backgroundColor: Colors.white24,
+              color: Colors.greenAccent,
+              minHeight: 10,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Pergunta ${_indiceAtual + 1}/${_perguntasEmbaralhadas.length}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                Text(
+                  'Acertos: $_acertos',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Enunciado
+            Card(
+              color: Colors.white.withOpacity(0.95),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 6,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  pergunta.enunciado,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Alternativas
+            Expanded(
+              child: ListView.builder(
+                itemCount: pergunta.alternativas.length,
+                itemBuilder: (context, index) {
+                  final alternativa = pergunta.alternativas[index];
+
+                  Color corFundo = Colors.white.withOpacity(0.9);
+                  Color corTexto = Colors.black87;
+
+                  if (_respondeu) {
+                    if (index == pergunta.indiceCorreto) {
+                      corFundo = Colors.green.shade400;
+                      corTexto = Colors.white;
+                    } else if (_indiceSelecionado == index &&
+                        index != pergunta.indiceCorreto) {
+                      corFundo = Colors.red.shade400;
+                      corTexto = Colors.white;
+                    }
+                  }
+
+                  return ScaleTransition(
+                    scale: _animScale,
+                    child: GestureDetector(
+                      onTap: () => _selecionarResposta(index),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: corFundo,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 14,
+                              backgroundColor: Colors.indigo,
+                              child: Text(
+                                String.fromCharCode(65 + index),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                alternativa,
+                                style: TextStyle(
+                                  color: corTexto,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Botão Próxima
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _respondeu ? _proximaPergunta : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.greenAccent.shade400,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  _indiceAtual < _perguntasEmbaralhadas.length - 1
+                      ? 'Próxima Pergunta'
+                      : 'Ver Resultado',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tela de resultado da fase
+class ResultadoScreen extends StatelessWidget {
+  final int indiceFase;
+  final String tema;
+  final int acertos;
+  final int total;
+
+  const ResultadoScreen({
+    Key? key,
+    required this.indiceFase,
+    required this.tema,
+    required this.acertos,
+    required this.total,
+  }) : super(key: key);
+
+  String _mensagem() {
+    final porcentagem = acertos / total;
+    if (porcentagem >= 0.8) {
+      return 'Excelente! Você domina muito esse tema.';
+    } else if (porcentagem >= 0.6) {
+      return 'Muito bom! Você passou de fase, mas pode melhorar ainda mais.';
+    } else if (porcentagem >= 0.4) {
+      return 'Você acertou algumas, mas ainda não é o suficiente para passar.';
+    } else {
+      return 'Foi difícil desta vez. Tente novamente para melhorar sua pontuação!';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool passou = acertos >= 6;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Resultado da Fase'),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.indigo, Colors.black87],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const SizedBox(height: 32),
+            Text(
+              'Fase ${indiceFase + 1} - $tema',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            Card(
+              color: Colors.white.withOpacity(0.95),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              elevation: 8,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                child: Column(
+                  children: [
+                    Text(
+                      '$acertos / $total acertos',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: passou ? Colors.green : Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _mensagem(),
+                      style: const TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      passou
+                          ? 'Você desbloqueia a próxima fase!'
+                          : 'Você precisa de pelo menos 6 acertos para avançar.',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Spacer(),
+            if (passou)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // volta para o mapa, informando que passou
+                    Navigator.pop<bool>(context, true);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.greenAccent.shade400,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Voltar ao mapa (próxima fase liberada)',
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              )
+            else ...[
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Recomeça a fase: volta para o mapa e deixa status como estava;
+                    // o próprio mapa deixa a fase atual disponível.
+                    Navigator.pop<bool>(context, false);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Tentar novamente a fase',
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.pop<bool>(context, passou);
+              },
+              child: const Text(
+                'Voltar ao mapa',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
 }
